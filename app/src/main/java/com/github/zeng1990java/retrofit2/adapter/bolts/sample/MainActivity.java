@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG, "then: canceled");
                     return null;
                 }else if (task.isFaulted()){
-                    Log.d(TAG, "then: faulted");
+                    Log.d(TAG, "then: faulted: "+task.getError().getMessage());
                     return null;
                 }else {
                     Log.d(TAG, "then: success");
@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG, "then: canceled");
                     return null;
                 }else if (task.isFaulted()){
-                    Log.d(TAG, "then: faulted");
+                    Log.d(TAG, "then: faulted: "+task.getError().getMessage());
                     return null;
                 }else {
                     Log.d(TAG, "then: success");

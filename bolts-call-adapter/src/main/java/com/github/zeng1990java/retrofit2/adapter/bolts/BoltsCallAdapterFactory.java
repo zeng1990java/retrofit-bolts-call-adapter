@@ -104,16 +104,8 @@ public final class BoltsCallAdapterFactory extends CallAdapter.Factory {
                     public void run() {
                         try {
                             Response<R> response = call.execute();
-                            if (response.isSuccessful()){
-                                tcs.setResult(response.body());
-                            }else {
-                                tcs.setError(new HttpException(response));
-                            }
-                        }catch (CancellationException e){
-                            tcs.setCancelled();
-                        } catch (IOException e) {
-                            tcs.setError(e);
-                        }catch (Exception e){
+                            setResponseResult(response, tcs);
+                        }catch (IOException e) {
                             tcs.setError(e);
                         }
                     }
@@ -122,17 +114,7 @@ public final class BoltsCallAdapterFactory extends CallAdapter.Factory {
                 call.enqueue(new Callback<R>() {
                     @Override
                     public void onResponse(Call<R> call, Response<R> response) {
-                        try {
-                            if (response.isSuccessful()){
-                                tcs.setResult(response.body());
-                            }else {
-                                tcs.setError(new HttpException(response));
-                            }
-                        }catch (CancellationException e){
-                            tcs.setCancelled();
-                        }catch (Exception e){
-                            tcs.setError(e);
-                        }
+                        setResponseResult(response, tcs);
                     }
 
                     @Override
@@ -143,6 +125,20 @@ public final class BoltsCallAdapterFactory extends CallAdapter.Factory {
             }
 
             return tcs.getTask();
+        }
+
+        private <R> void setResponseResult(Response<R> response, TaskCompletionSource<R> tcs) {
+            try {
+                if (response.isSuccessful()){
+                    tcs.setResult(response.body());
+                }else {
+                    tcs.setError(new HttpException(response));
+                }
+            }catch (CancellationException e){
+                tcs.setCancelled();
+            }catch (Exception e){
+                tcs.setError(e);
+            }
         }
     }
 
@@ -171,16 +167,8 @@ public final class BoltsCallAdapterFactory extends CallAdapter.Factory {
                     public void run() {
                         try {
                             Response<R> response = call.execute();
-                            if (response.isSuccessful()){
-                                tcs.setResult(response);
-                            }else {
-                                tcs.setError(new HttpException(response));
-                            }
-                        }catch (CancellationException e){
-                            tcs.setCancelled();
-                        } catch (IOException e) {
-                            tcs.setError(e);
-                        }catch (Exception e){
+                            setResponseResult(response, tcs);
+                        }catch (IOException e) {
                             tcs.setError(e);
                         }
                     }
@@ -189,13 +177,7 @@ public final class BoltsCallAdapterFactory extends CallAdapter.Factory {
                 call.enqueue(new Callback<R>() {
                     @Override
                     public void onResponse(Call<R> call, Response<R> response) {
-                        try {
-                            tcs.setResult(response);
-                        } catch (CancellationException e) {
-                            tcs.setCancelled();
-                        } catch (Exception e) {
-                            tcs.setError(e);
-                        }
+                        setResponseResult(response, tcs);
                     }
 
                     @Override
@@ -205,6 +187,16 @@ public final class BoltsCallAdapterFactory extends CallAdapter.Factory {
                 });
             }
             return tcs.getTask();
+        }
+
+        private <R> void setResponseResult(Response<R> response, TaskCompletionSource<Response<R>> tcs) {
+            try {
+                tcs.setResult(response);
+            } catch (CancellationException e) {
+                tcs.setCancelled();
+            } catch (Exception e) {
+                tcs.setError(e);
+            }
         }
     }
 }
