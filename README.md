@@ -2,7 +2,7 @@
 
 
 ## Usage
-```java
+```groovy
 allprojects {
 		repositories {
 			...
@@ -10,7 +10,16 @@ allprojects {
 		}
 	}
 
+
+
 compile 'com.github.zeng1990java:retrofit-bolts-call-adapter:1.0.0'
+
+compile 'com.squareup.retrofit2:retrofit:2.1.0'
+compile 'com.parse.bolts:bolts-tasks:1.4.0'
+
+// opt
+compile 'com.google.code.gson:gson:2.7'
+compile 'com.squareup.retrofit2:converter-gson:2.1.0'
 
 ```
 
