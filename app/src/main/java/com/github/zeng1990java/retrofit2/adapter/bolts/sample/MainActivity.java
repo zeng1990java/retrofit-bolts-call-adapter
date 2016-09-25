@@ -29,7 +29,9 @@ public class MainActivity extends AppCompatActivity {
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(GankApi.BASE_API)
-                .addCallAdapterFactory(BoltsCallAdapterFactory.createWithExecutor(Task.BACKGROUND_EXECUTOR))
+                .addCallAdapterFactory(BoltsCallAdapterFactory.create())
+                // or with custom Executor
+//                .addCallAdapterFactory(BoltsCallAdapterFactory.createWithExecutor(Task.BACKGROUND_EXECUTOR))
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         GankApi gankApi = retrofit.create(GankApi.class);
