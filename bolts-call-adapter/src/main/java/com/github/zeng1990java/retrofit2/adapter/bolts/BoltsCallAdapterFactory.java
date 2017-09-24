@@ -37,12 +37,12 @@ import retrofit2.Retrofit;
  */
 public final class BoltsCallAdapterFactory extends CallAdapter.Factory {
 
-    public static BoltsCallAdapterFactory create(){
+    public static BoltsCallAdapterFactory create() {
         return new BoltsCallAdapterFactory(null);
     }
 
-    public static BoltsCallAdapterFactory createWithExecutor(Executor executor){
-        if (executor == null){
+    public static BoltsCallAdapterFactory createWithExecutor(Executor executor) {
+        if (executor == null) {
             throw new NullPointerException("executor == null");
         }
         return new BoltsCallAdapterFactory(executor);
@@ -50,27 +50,27 @@ public final class BoltsCallAdapterFactory extends CallAdapter.Factory {
 
     private Executor executor;
 
-    private BoltsCallAdapterFactory(Executor executor){
+    private BoltsCallAdapterFactory(Executor executor) {
         this.executor = executor;
     }
 
     @Override
-    public CallAdapter<?> get(Type returnType, Annotation[] annotations, Retrofit retrofit) {
-        if (getRawType(returnType) != Task.class){
+    public CallAdapter<?, ?> get(Type returnType, Annotation[] annotations, Retrofit retrofit) {
+        if (getRawType(returnType) != Task.class) {
             return null;
         }
 
-        if (!(returnType instanceof ParameterizedType)){
+        if (!(returnType instanceof ParameterizedType)) {
             throw new IllegalArgumentException("Task return type must be parameterized"
                     + " as Task<Foo> or Task<? extends Foo>");
         }
         Type innerType = getParameterUpperBound(0, (ParameterizedType) returnType);
 
-        if (getRawType(innerType) != Response.class){
+        if (getRawType(innerType) != Response.class) {
             return new BodyCallAdapter(executor, innerType);
         }
 
-        if (!(innerType instanceof ParameterizedType)){
+        if (!(innerType instanceof ParameterizedType)) {
             throw new IllegalArgumentException("Response must be parameterized"
                     + " as Response<Foo> or Response<? extends Foo>");
         }
@@ -78,12 +78,12 @@ public final class BoltsCallAdapterFactory extends CallAdapter.Factory {
         return new ResponseCallAdapter(executor, responseType);
     }
 
-    private static class BodyCallAdapter implements CallAdapter<Task<?>>{
+    private static class BodyCallAdapter<R> implements CallAdapter<R, Object> {
 
         private Executor executor;
         private final Type responseType;
 
-        BodyCallAdapter(Executor executor, Type responseType){
+        BodyCallAdapter(Executor executor, Type responseType) {
             this.executor = executor;
             this.responseType = responseType;
         }
@@ -94,23 +94,22 @@ public final class BoltsCallAdapterFactory extends CallAdapter.Factory {
         }
 
         @Override
-        public <R> Task<?> adapt(final Call<R> call) {
-
+        public Object adapt(final Call<R> call) {
             final TaskCompletionSource<R> tcs = new TaskCompletionSource<>();
 
-            if (executor != null){
+            if (executor != null) {
                 executor.execute(new Runnable() {
                     @Override
                     public void run() {
                         try {
                             Response<R> response = call.execute();
                             setResponseResult(response, tcs);
-                        }catch (IOException e) {
+                        } catch (IOException e) {
                             tcs.setError(e);
                         }
                     }
                 });
-            }else {
+            } else {
                 call.enqueue(new Callback<R>() {
                     @Override
                     public void onResponse(Call<R> call, Response<R> response) {
@@ -127,26 +126,26 @@ public final class BoltsCallAdapterFactory extends CallAdapter.Factory {
             return tcs.getTask();
         }
 
-        private <R> void setResponseResult(Response<R> response, TaskCompletionSource<R> tcs) {
+        private void setResponseResult(Response<R> response, TaskCompletionSource<R> tcs) {
             try {
-                if (response.isSuccessful()){
+                if (response.isSuccessful()) {
                     tcs.setResult(response.body());
-                }else {
+                } else {
                     tcs.setError(new HttpException(response));
                 }
-            }catch (CancellationException e){
+            } catch (CancellationException e) {
                 tcs.setCancelled();
-            }catch (Exception e){
+            } catch (Exception e) {
                 tcs.setError(e);
             }
         }
     }
 
-    private static class ResponseCallAdapter implements CallAdapter<Task<?>>{
+    private static class ResponseCallAdapter<R> implements CallAdapter<R, Object> {
         private final Executor executor;
         private final Type responseType;
 
-        ResponseCallAdapter(Executor executor, Type responseType){
+        ResponseCallAdapter(Executor executor, Type responseType) {
             this.executor = executor;
             this.responseType = responseType;
         }
@@ -157,23 +156,23 @@ public final class BoltsCallAdapterFactory extends CallAdapter.Factory {
         }
 
         @Override
-        public <R> Task<?> adapt(final Call<R> call) {
+        public Object adapt(final Call<R> call) {
 
             final TaskCompletionSource<Response<R>> tcs = new TaskCompletionSource<>();
 
-            if (executor != null){
+            if (executor != null) {
                 executor.execute(new Runnable() {
                     @Override
                     public void run() {
                         try {
                             Response<R> response = call.execute();
                             setResponseResult(response, tcs);
-                        }catch (IOException e) {
+                        } catch (IOException e) {
                             tcs.setError(e);
                         }
                     }
                 });
-            }else {
+            } else {
                 call.enqueue(new Callback<R>() {
                     @Override
                     public void onResponse(Call<R> call, Response<R> response) {
@@ -189,7 +188,7 @@ public final class BoltsCallAdapterFactory extends CallAdapter.Factory {
             return tcs.getTask();
         }
 
-        private <R> void setResponseResult(Response<R> response, TaskCompletionSource<Response<R>> tcs) {
+        private void setResponseResult(Response<R> response, TaskCompletionSource<Response<R>> tcs) {
             try {
                 tcs.setResult(response);
             } catch (CancellationException e) {
